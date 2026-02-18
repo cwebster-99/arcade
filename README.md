@@ -1,18 +1,23 @@
-# Daily Mini
+# Arcade
 
-A web-based mini crossword puzzle game. This application features daily puzzles with a 5x5 grid for weekdays and 7x7 grid for Saturdays, providing users with quick, engaging crossword experiences that can be completed in just a few minutes.
+A collection of classic arcade games built with React and TypeScript. Play Snake, 2048, Tetris, and Flappy Bird right in your browser!
 
-## Current Features
+## Games
 
-✅ **Basic Functionality Working:**
-- Letter input with keyboard support
-- Arrow key navigation
-- Direction switching (Across/Down)
-- Real-time completion detection
-- Timer functionality
-- Interactive clue panels
-- Reset functionality
+🐍 **Snake** - Guide the snake to eat food and grow longer without hitting walls or yourself
+
+🔢 **2048** - Slide numbered tiles to combine them and reach the 2048 tile
+
+🧱 **Tetris** - Stack falling blocks to clear lines and score points
+
+🐦 **Flappy Bird** - Tap to fly through gaps in the pipes
+
+## Features
+
+- Light/Dark theme toggle with persistent preference
 - Responsive design
+- Keyboard and mouse/touch controls
+- Score tracking
 
 ## Tech Stack
 
@@ -34,44 +39,45 @@ A web-based mini crossword puzzle game. This application features daily puzzles 
    npm run dev
    ```
 
-## How to Play
-
-1. **Select a cell**: Click on any white cell in the grid
-2. **Enter letters**: Type letters directly - they'll appear in the selected cell
-3. **Navigate**: 
-   - Use arrow keys to move between cells
-   - Tab to move to next cell in current direction
-   - Space bar to toggle between Across/Down directions
-4. **Use clues**: Click on clues to jump to their starting position
-5. **Complete the puzzle**: Fill in all letters correctly to see the completion message
-
-## Keyboard Shortcuts
-
-- **Arrow keys**: Navigate between cells
-- **Letters A-Z**: Enter letters
-- **Backspace/Delete**: Clear current cell
-- **Tab**: Move to next cell in current direction
-- **Space**: Toggle between Across/Down directions
+3. **Build for production:**
+   ```bash
+   npm run build
+   ```
 
 ## Project Structure
 
 ```
 src/
 ├── components/
-│   ├── CrosswordGrid.tsx    # Main crossword grid component
-│   ├── CluePanel.tsx        # Clue display component
-│   └── Timer.tsx            # Timer component
-├── store/
-│   └── gameStore.ts         # Zustand state management
-├── types/
-│   └── puzzle.ts            # TypeScript type definitions
-└── App.tsx                  # Main app component
+│   ├── Home.tsx         # Home page with game selection
+│   ├── SnakeGame.tsx    # Snake game component
+│   ├── Game2048.tsx     # 2048 game component
+│   ├── TetrisGame.tsx   # Tetris game component
+│   └── FlappyGame.tsx   # Flappy Bird game component
+├── App.tsx              # Main app with routing
+├── main.tsx             # Entry point
+└── index.css            # Global styles
 ```
 
-## Sample Puzzle
+## How to Play
 
-The app currently includes a sample puzzle with:
-- 4 Across clues: CARS, AREA, TAXI, ASK
-- 2 Down clues: CAT, RAT
+### Snake
+- Use **Arrow keys** to change direction
+- Eat the food to grow longer
+- Avoid hitting the walls or yourself
 
-Try solving it to test all the features!
+### 2048
+- Use **Arrow keys** to slide tiles
+- Combine matching numbers
+- Try to reach 2048!
+
+### Tetris
+- **Left/Right arrows** - Move piece
+- **Up arrow** - Rotate piece
+- **Down arrow** - Soft drop
+- **Space** - Hard drop
+
+### Flappy Bird
+- **Space** or **Click** to flap
+- Navigate through the pipes
+- Don't hit the ground or pipes!

@@ -1,151 +1,158 @@
-import { useEffect, useState } from 'react'
-import { CrosswordGrid } from './components/CrosswordGrid'
-import { CluePanel } from './components/CluePanel'
-import { Timer } from './components/Timer'
-import { PuzzleSelector } from './components/PuzzleSelector'
-import { Clue } from './types/puzzle'
-import { useGameStore } from './store/gameStore'
-import { PuzzleService } from './services/puzzleService'
+import { ReactNode, useState } from "react";
+import Home from "./components/Home";
+import SnakeGame from "./components/SnakeGame";
+import Game2048 from "./components/Game2048";
+import TetrisGame from "./components/TetrisGame";
+import FlappyGame from "./components/FlappyGame";
 
-function App() {
-  const [showPuzzleSelector, setShowPuzzleSelector] = useState(false);
-  
-  const {
-    currentPuzzle,
-    userGrid,
-    selectedCell,
-    direction,
-    startTime,
-    isCompleted,
-    loadPuzzle,
-    updateCell,
-    setSelectedCell,
-    setDirection,
-    resetPuzzle
-  } = useGameStore();
+interface GameLayoutProps {
+  title: string;
+  children: ReactNode;
+  onBack: () => void;
+  onThemeChange: () => void;
+  theme: "light" | "dark";
+  bgColor?: string;
+}
 
-  // Load today's puzzle on app start
-  useEffect(() => {
-    try {
-      const todaysPuzzle = PuzzleService.getTodaysPuzzle();
-      loadPuzzle(todaysPuzzle);
-    } catch (error) {
-      console.error('Failed to load today\'s puzzle:', error);
-      // Load first available puzzle as fallback
-      const allPuzzles = PuzzleService.getAllPuzzles();
-      if (allPuzzles.length > 0) {
-        loadPuzzle(allPuzzles[0]);
-      }
-    }
-  }, [loadPuzzle]);
-
-  const handleCellClick = (row: number, col: number) => {
-    setSelectedCell([row, col]);
-  };
-
-  const handleCellInput = (row: number, col: number, value: string) => {
-    updateCell(row, col, value);
-  };
-
-  const handleDirectionChange = (newDirection: 'across' | 'down') => {
-    setDirection(newDirection);
-  };
-
-  const handleClueClick = (clue: Clue) => {
-    setSelectedCell([clue.startRow, clue.startCol]);
-    setDirection(clue.direction);
-  };
-
-  const handlePuzzleSelect = (puzzle: any) => {
-    loadPuzzle(puzzle);
-  };
-
-  if (!currentPuzzle || userGrid.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg">Loading puzzle...</div>
-        </div>
-      </div>
-    );
-  }
-
+function GameLayout({
+  title,
+  children,
+  onBack,
+  onThemeChange,
+  theme,
+  bgColor = "bg-white",
+}: GameLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            Daily Mini Crossword
-          </h1>
-          <div className="mt-4 text-sm text-gray-500">
-            {currentPuzzle.title} • {currentPuzzle.date}
-          </div>
-          
-          {/* Game controls and timer */}
-          <div className="mt-4 flex justify-center items-center gap-6 flex-wrap">
-            <Timer startTime={startTime} isCompleted={isCompleted} />
+        <header className="text-center mb-6">
+          <div className="flex items-center justify-between">
             <button
-              onClick={() => setShowPuzzleSelector(true)}
-              className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
+              onClick={onBack}
+              className="text-sm text-blue-600 underline"
             >
-              Choose Puzzle
+              &larr; Back
             </button>
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">{title}</h1>
             <button
-              onClick={resetPuzzle}
-              className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm font-medium transition-colors"
+              onClick={onThemeChange}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                theme === "dark"
+                  ? "bg-gray-700 text-white hover:bg-gray-600"
+                  : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+              }`}
             >
-              Reset
+              {theme === "dark" ? "Light Mode" : "Dark Mode"}
             </button>
-            {isCompleted && (
-              <div className="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium">
-                🎉 Completed!
-              </div>
-            )}
           </div>
         </header>
-        
-        <main className="max-w-2xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-            <CrosswordGrid
-              size={currentPuzzle.size}
-              grid={userGrid}
-              onCellClick={handleCellClick}
-              onCellInput={handleCellInput}
-              selectedCell={selectedCell}
-              direction={direction}
-              onDirectionChange={handleDirectionChange}
-            />
-          </div>
-          
-          {/* Clues section */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <CluePanel
-              clues={currentPuzzle.clues}
-              direction="across"
-              selectedCell={selectedCell}
-              onClueClick={handleClueClick}
-            />
-            
-            <CluePanel
-              clues={currentPuzzle.clues}
-              direction="down"
-              selectedCell={selectedCell}
-              onClueClick={handleClueClick}
-            />
+        <main
+          className={
+            bgColor === "bg-black" ? "max-w-4xl mx-auto" : "max-w-2xl mx-auto"
+          }
+        >
+          <div className={`${bgColor} rounded-lg shadow-lg p-6 mb-6`}>
+            {children}
           </div>
         </main>
-
-        {/* Puzzle Selector Modal */}
-        {showPuzzleSelector && (
-          <PuzzleSelector
-            currentPuzzle={currentPuzzle}
-            onPuzzleSelect={handlePuzzleSelect}
-            onClose={() => setShowPuzzleSelector(false)}
-          />
-        )}
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+function App() {
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    try {
+      const stored = localStorage.getItem("theme");
+      return stored === "dark" ? "dark" : "light";
+    } catch {
+      return "light";
+    }
+  });
+
+  const [view, setView] = useState<
+    "home" | "snake" | "2048" | "tetris" | "flappy"
+  >("home");
+
+  const handleThemeChange = () => {
+    const newTheme = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    try {
+      localStorage.setItem("theme", newTheme);
+    } catch {
+      // localStorage may be unavailable
+    }
+    if (newTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  };
+
+  return (
+    <div>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 bg-white dark:bg-gray-800 px-3 py-2 rounded shadow"
+      >
+        Skip to main content
+      </a>
+
+      {view === "home" && (
+        <Home
+          onPlaySnake={() => setView("snake")}
+          onPlay2048={() => setView("2048")}
+          onPlayTetris={() => setView("tetris")}
+          onPlayFlappy={() => setView("flappy")}
+        />
+      )}
+
+      {view === "snake" && (
+        <GameLayout
+          title="Snake"
+          onBack={() => setView("home")}
+          onThemeChange={handleThemeChange}
+          theme={theme}
+        >
+          <SnakeGame />
+        </GameLayout>
+      )}
+
+      {view === "2048" && (
+        <GameLayout
+          title="2048"
+          onBack={() => setView("home")}
+          onThemeChange={handleThemeChange}
+          theme={theme}
+        >
+          <Game2048 />
+        </GameLayout>
+      )}
+
+      {view === "tetris" && (
+        <GameLayout
+          title="TETRIS"
+          onBack={() => setView("home")}
+          onThemeChange={handleThemeChange}
+          theme={theme}
+          bgColor="bg-black"
+        >
+          <TetrisGame />
+        </GameLayout>
+      )}
+
+      {view === "flappy" && (
+        <GameLayout
+          title="FLAPPY BIRD"
+          onBack={() => setView("home")}
+          onThemeChange={handleThemeChange}
+          theme={theme}
+        >
+          <FlappyGame />
+        </GameLayout>
+      )}
+    </div>
+  );
+}
+
+export default App;
