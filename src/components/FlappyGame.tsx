@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const GRAVITY = 0.5;
 const FLAP_STRENGTH = -12;
@@ -13,7 +13,7 @@ interface Pipe {
   scored?: boolean;
 }
 
-const FlappyGame: React.FC = () => {
+const FlappyGame = () => {
   const [birdY, setBirdY] = useState(200);
   const [birdVelocity, setBirdVelocity] = useState(0);
   const [pipes, setPipes] = useState<Pipe[]>([
@@ -35,8 +35,6 @@ const FlappyGame: React.FC = () => {
   const gameHeight = 600;
   const birdX = 50;
 
-  const gameLoopRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const pipeIdRef = useRef(0);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const birdYRef = useRef(birdY);
 
@@ -90,14 +88,13 @@ const FlappyGame: React.FC = () => {
     setScore(0);
     setGameOver(false);
     setRunning(true);
-    pipeIdRef.current = 0;
   };
 
   // Game loop
   useEffect(() => {
     if (!running || gameOver) return;
 
-    gameLoopRef.current = setInterval(() => {
+    const intervalId = setInterval(() => {
       setBirdY((prevY) => {
         const newY = prevY + birdVelocity;
         setBirdVelocity((v) => v + GRAVITY);
@@ -168,9 +165,7 @@ const FlappyGame: React.FC = () => {
       });
     }, 30);
 
-    return () => {
-      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
-    };
+    return () => clearInterval(intervalId);
   }, [running, gameOver, birdVelocity, highScore]);
 
   return (

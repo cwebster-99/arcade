@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const BOARD_WIDTH = 10;
 const BOARD_HEIGHT = 20;
@@ -148,7 +148,7 @@ function getTileColor(value: number | null): string {
   return colors[value ?? 0] || "bg-gray-900";
 }
 
-const TetrisGame: React.FC = () => {
+const TetrisGame = () => {
   const [board, setBoard] = useState<Board>(createEmptyBoard);
   const [piece, setPiece] = useState<Piece>(getRandomPiece);
   const [nextPiece, setNextPiece] = useState<Piece>(getRandomPiece);
