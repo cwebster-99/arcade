@@ -1,0 +1,101 @@
+name: "Update README After PR Merge"
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: "update-readme-${{ github.event.pull_request.number || github.run_id }}"
+  cancel-in-progress: true
+
+jobs:
+  create-readme-review-issue:
+    # Only run when a PR is actually merged (not just closed)
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Determine PR context
+        id: pr-context
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        with:
+          script: |
+            let prNumber, prTitle, prBody, prAuthor;
+
+            if (context.eventName === 'workflow_dispatch') {
+              // Fallback for manual runs
+              prNumber = 'N/A';
+              prTitle = 'manual trigger';
+              prBody = '(manually triggered)';
+              prAuthor = context.actor;
+            } else {
+              const pr = context.payload.pull_request;
+              prNumber = pr.number;
+              prTitle = pr.title;
+              prBody = pr.body || '(no description)';
+              prAuthor = pr.user.login;
+            }
+
+            core.setOutput('pr_number', prNumber);
+            core.setOutput('pr_title', prTitle);
+            core.setOutput('pr_body', prBody);
+            core.setOutput('pr_author', prAuthor);
+
+      - name: Create README review issue
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7
+        env:
+          PR_NUMBER: ${{ steps.pr-context.outputs.pr_number }}
+          PR_TITLE: ${{ steps.pr-context.outputs.pr_title }}
+          PR_BODY: ${{ steps.pr-context.outputs.pr_body }}
+          PR_AUTHOR: ${{ steps.pr-context.outputs.pr_author }}
+        with:
+          script: |
+            const prNumber = process.env.PR_NUMBER;
+            const prTitle = process.env.PR_TITLE;
+            const prBody = process.env.PR_BODY;
+            const prAuthor = process.env.PR_AUTHOR;
+
+            const prRef = prNumber !== 'N/A' ? `PR #${prNumber}` : 'a manual trigger';
+
+            const issueBody = [
+              `## README Review Request`,
+              ``,
+              `${prRef} ("${prTitle}") was merged by @${prAuthor}. Please review \`README.md\` to ensure it is still accurate and up to date.`,
+              ``,
+              `### PR Description`,
+              `${prBody}`,
+              ``,
+              `### What to Check`,
+              ``,
+              `Review the README against the current state of the repository and update any sections that are stale or inaccurate. Key areas to verify:`,
+              ``,
+              `- **Games list** — does it still reflect every game in \`src/components/\`?`,
+              `- **Features section** — are all listed features still present and accurate?`,
+              `- **Tech stack** — do the listed libraries match \`package.json\`?`,
+              `- **Project structure** — does the directory tree match the actual layout of \`src/\`?`,
+              `- **Getting Started** — do the listed commands still work?`,
+              `- **How to Play** — are the controls and instructions correct for each game?`,
+              ``,
+              `### Instructions`,
+              ``,
+              `1. Read the current \`README.md\``,
+              `2. Compare it against the actual source files in \`src/\` and \`package.json\``,
+              `3. If any section is out of date, update it in a single commit`,
+              `4. If the README is already accurate, close this issue with a comment explaining that no changes were needed`,
+            ].join('\n');
+
+            const issue = await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `docs: verify README is up to date after ${prRef}`,
+              body: issueBody,
+              labels: ['documentation'],
+            });
+
+            core.info(`Created issue #${issue.data.number}: ${issue.data.html_url}`);
