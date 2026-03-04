@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Home from "./components/Home";
 import SnakeGame from "./components/SnakeGame";
 import Game2048 from "./components/Game2048";
@@ -23,17 +23,17 @@ function GameLayout({
   bgColor = "bg-white",
 }: GameLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
       <div className="container mx-auto px-4">
         <header className="text-center mb-6">
           <div className="flex items-center justify-between">
             <button
               onClick={onBack}
-              className="text-sm text-blue-600 underline"
+              className="text-sm text-blue-600 dark:text-blue-400 underline"
             >
               &larr; Back
             </button>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">{title}</h1>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 mb-2">{title}</h1>
             <button
               onClick={onThemeChange}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -51,7 +51,7 @@ function GameLayout({
             bgColor === "bg-black" ? "max-w-4xl mx-auto" : "max-w-2xl mx-auto"
           }
         >
-          <div className={`${bgColor} rounded-lg shadow-lg p-6 mb-6`}>
+          <div className={`${bgColor === "bg-white" ? "bg-white dark:bg-gray-800" : bgColor} rounded-lg shadow-lg p-6 mb-6`}>
             {children}
           </div>
         </main>
@@ -74,6 +74,14 @@ function App() {
     "home" | "snake" | "2048" | "tetris" | "flappy"
   >("home");
 
+  useEffect(() => {
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme]);
+
   const handleThemeChange = () => {
     const newTheme = theme === "dark" ? "light" : "dark";
     setTheme(newTheme);
@@ -81,11 +89,6 @@ function App() {
       localStorage.setItem("theme", newTheme);
     } catch {
       // localStorage may be unavailable
-    }
-    if (newTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
     }
   };
 
