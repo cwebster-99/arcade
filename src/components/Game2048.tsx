@@ -34,6 +34,7 @@ function createTile(value: number, row: number, col: number): Tile {
 }
 
 function initGrid(): Grid {
+  tileIdCounter = 1;
   const grid = createEmptyGrid();
   addNewTile(grid);
   addNewTile(grid);

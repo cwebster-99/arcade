@@ -37,10 +37,22 @@ const FlappyGame = () => {
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const birdYRef = useRef(birdY);
+  // Refs let the game loop read the latest values without being in its dep array,
+  // which would otherwise cause the interval to restart every frame.
+  const birdVelocityRef = useRef(birdVelocity);
+  const highScoreRef = useRef(highScore);
 
   useEffect(() => {
     birdYRef.current = birdY;
   }, [birdY]);
+
+  useEffect(() => {
+    birdVelocityRef.current = birdVelocity;
+  }, [birdVelocity]);
+
+  useEffect(() => {
+    highScoreRef.current = highScore;
+  }, [highScore]);
 
   // Focus game on mount
   useEffect(() => {
@@ -55,6 +67,7 @@ const FlappyGame = () => {
         return;
       }
       if ((e.key === " " || e.key === "Enter") && running && !gameOver) {
+        birdVelocityRef.current = FLAP_STRENGTH;
         setBirdVelocity(FLAP_STRENGTH);
       }
     };
@@ -65,7 +78,8 @@ const FlappyGame = () => {
 
   // Mouse click to flap
   const handleFlap = () => {
-    if (!gameOver) {
+    if (running && !gameOver) {
+      birdVelocityRef.current = FLAP_STRENGTH;
       setBirdVelocity(FLAP_STRENGTH);
     }
   };
@@ -79,6 +93,7 @@ const FlappyGame = () => {
 
   // Reset game
   const reset = () => {
+    birdVelocityRef.current = 0;
     setBirdY(200);
     setBirdVelocity(0);
     setPipes([
@@ -90,14 +105,15 @@ const FlappyGame = () => {
     setRunning(true);
   };
 
-  // Game loop
+  // Game loop — only re-runs when running/gameOver change, not on every velocity tick
   useEffect(() => {
     if (!running || gameOver) return;
 
     const intervalId = setInterval(() => {
       setBirdY((prevY) => {
-        const newY = prevY + birdVelocity;
-        setBirdVelocity((v) => v + GRAVITY);
+        const newY = prevY + birdVelocityRef.current;
+        birdVelocityRef.current += GRAVITY;
+        setBirdVelocity(birdVelocityRef.current);
 
         // Ceiling and floor collision
         if (newY <= 0 || newY + BIRD_SIZE >= gameHeight) {
@@ -130,7 +146,7 @@ const FlappyGame = () => {
           });
         }
 
-        // Collision detection
+        // Collision and scoring
         newPipes.forEach((pipe) => {
           if (birdX + BIRD_SIZE > pipe.x && birdX < pipe.x + PIPE_WIDTH) {
             // Check collision with top or bottom pipe
@@ -143,11 +159,15 @@ const FlappyGame = () => {
             }
           }
 
-          // Score increment when passing pipe
-          if (pipe.x === birdX - PIPE_WIDTH / 2 && !pipe.scored) {
+          // Score when the pipe's right edge passes the bird's left edge.
+          // Using a range check (<=) avoids the fragile exact-pixel equality
+          // that was previously skipped because pipes move 6 px per frame.
+          if (!pipe.scored && pipe.x + PIPE_WIDTH <= birdX) {
+            pipe.scored = true;
             setScore((prev) => {
               const newScore = prev + 1;
-              if (newScore > highScore) {
+              if (newScore > highScoreRef.current) {
+                highScoreRef.current = newScore;
                 setHighScore(newScore);
                 try {
                   localStorage.setItem("flappyHighScore", String(newScore));
@@ -157,7 +177,6 @@ const FlappyGame = () => {
               }
               return newScore;
             });
-            pipe.scored = true;
           }
         });
 
@@ -166,7 +185,7 @@ const FlappyGame = () => {
     }, 30);
 
     return () => clearInterval(intervalId);
-  }, [running, gameOver, birdVelocity, highScore]);
+  }, [running, gameOver]);
 
   return (
     <div
@@ -178,7 +197,7 @@ const FlappyGame = () => {
     >
       <div className="flex gap-4 mb-2">
         <button
-          onClick={startGame}
+          onClick={gameOver ? reset : startGame}
           className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-bold"
         >
           {running ? "Playing..." : gameOver ? "Restart" : "Start"}
@@ -189,7 +208,7 @@ const FlappyGame = () => {
 
       <div
         onClick={handleFlap}
-        role="grid"
+        role="img"
         aria-label="Game canvas"
         className="relative bg-gradient-to-b from-cyan-300 to-cyan-100 border-4 border-gray-800 cursor-pointer overflow-hidden"
         style={{
