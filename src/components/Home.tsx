@@ -3,9 +3,10 @@ interface HomeProps {
   onPlay2048?: () => void;
   onPlayTetris?: () => void;
   onPlayFlappy?: () => void;
+  onPlayMinesweeper?: () => void;
 }
 
-function Home({ onPlaySnake, onPlay2048, onPlayTetris, onPlayFlappy }: HomeProps) {
+function Home({ onPlaySnake, onPlay2048, onPlayTetris, onPlayFlappy, onPlayMinesweeper }: HomeProps) {
 
   return (
     <div className="min-h-screen bg-gray-900 flex items-center justify-center py-12 relative overflow-hidden">
@@ -184,6 +185,43 @@ function Home({ onPlaySnake, onPlay2048, onPlayTetris, onPlayFlappy }: HomeProps
                 <p className="text-blue-300 font-bold text-sm">PIPE DODGER</p>
                 <div className="mt-4 text-xs text-gray-400 font-mono">
                   SPACE CLICK FLAP  AVOID PIPES
+                </div>
+              </div>
+            </button>
+
+            {/* Minesweeper Cabinet */}
+            <button
+              onClick={onPlayMinesweeper}
+              className="arcade-cabinet-button"
+              style={{
+                perspective: '1000px',
+                transform: 'rotateY(0deg)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05) rotateY(-5deg)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1) rotateY(0deg)';
+              }}
+            >
+              <div className="bg-gray-800 border-4 border-purple-400 rounded-lg p-6 relative shadow-2xl"
+                style={{
+                  boxShadow: '0 0 20px rgba(192,132,252,0.6), inset 0 0 20px rgba(147,51,234,0.2)'
+                }}>
+                <div className="bg-black rounded p-4 mb-4 border-2 border-purple-400" style={{
+                  boxShadow: 'inset 0 0 20px rgba(192,132,252,0.4)'
+                }}>
+                  <p className="text-6xl">💣</p>
+                </div>
+                <h2 className="text-2xl font-black text-purple-400 mb-2 neon-text" style={{
+                  textShadow: '0 0 10px #c084fc, 0 0 20px #9333ea'
+                }}>
+                  MINESWEEPER
+                </h2>
+                <p className="text-purple-300 font-bold text-sm">MINE HUNTER</p>
+                <div className="mt-4 text-xs text-gray-400 font-mono">
+                  LEFT CLICK REVEAL &nbsp;•&nbsp; RIGHT CLICK FLAG
                 </div>
               </div>
             </button>
