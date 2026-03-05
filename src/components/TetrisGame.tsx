@@ -277,7 +277,7 @@ const TetrisGame = () => {
     }, speedRef.current);
 
     return () => clearInterval(id);
-  }, [running, moveDown, placeCurrent]);
+  }, [running, moveDown, placeCurrent, level]);
 
   const reset = () => {
     setBoard(createEmptyBoard());
