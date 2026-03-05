@@ -137,7 +137,23 @@ function Home({ onPlaySnake, onPlay2048, onPlayTetris, onPlayFlappy }: HomeProps
                 <div className="bg-black rounded p-4 mb-4 border-2 border-cyan-400" style={{
                   boxShadow: 'inset 0 0 20px rgba(34,211,238,0.4)'
                 }}>
-                  <p className="text-6xl">⬜</p>
+                  <div className="flex flex-col items-center gap-1">
+                    <div className="flex gap-1">
+                      <span className="text-3xl">🟦</span>
+                      <span className="text-3xl">🟦</span>
+                      <span className="text-3xl">🟦</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <span className="text-3xl">🟥</span>
+                      <span className="text-3xl">🟥</span>
+                      <span className="text-3xl">🟨</span>
+                    </div>
+                    <div className="flex gap-1">
+                      <span className="text-3xl">🟩</span>
+                      <span className="text-3xl">🟥</span>
+                      <span className="text-3xl">🟨</span>
+                    </div>
+                  </div>
                 </div>
                 <h2 className="text-2xl font-black text-cyan-400 mb-2 neon-text" style={{
                   textShadow: '0 0 10px #00ffff, 0 0 20px #0088ff'
