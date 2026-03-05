@@ -243,8 +243,6 @@ function Home({ onPlaySnake, onPlay2048, onPlayTetris, onPlayFlappy, onPlayMines
           100% { background-position: 0% 50%; }
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
-
         .arcade-title {
           font-family: 'Orbitron', monospace;
           letter-spacing: 4px;

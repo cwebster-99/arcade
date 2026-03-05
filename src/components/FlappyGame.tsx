@@ -37,10 +37,15 @@ const FlappyGame = () => {
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const birdYRef = useRef(birdY);
+  const birdVelocityRef = useRef(birdVelocity);
 
   useEffect(() => {
     birdYRef.current = birdY;
   }, [birdY]);
+
+  useEffect(() => {
+    birdVelocityRef.current = birdVelocity;
+  }, [birdVelocity]);
 
   // Focus game on mount
   useEffect(() => {
@@ -96,7 +101,7 @@ const FlappyGame = () => {
 
     const intervalId = setInterval(() => {
       setBirdY((prevY) => {
-        const newY = prevY + birdVelocity;
+        const newY = prevY + birdVelocityRef.current;
         setBirdVelocity((v) => v + GRAVITY);
 
         // Ceiling and floor collision
@@ -110,10 +115,27 @@ const FlappyGame = () => {
       });
 
       setPipes((prevPipes) => {
-        let newPipes = prevPipes.map((p) => ({
-          ...p,
-          x: p.x - 6,
-        }));
+        // Move pipes and handle scoring immutably in a single map pass
+        let newPipes = prevPipes.map((p) => {
+          const newX = p.x - 6;
+          // Score when the pipe's right edge passes the bird's left edge
+          if (!p.scored && newX + PIPE_WIDTH < birdX) {
+            setScore((prev) => {
+              const newScore = prev + 1;
+              if (newScore > highScore) {
+                setHighScore(newScore);
+                try {
+                  localStorage.setItem("flappyHighScore", String(newScore));
+                } catch {
+                  // localStorage may be unavailable
+                }
+              }
+              return newScore;
+            });
+            return { ...p, x: newX, scored: true };
+          }
+          return { ...p, x: newX };
+        });
 
         // Remove off-screen pipes and add new ones
         newPipes = newPipes.filter((p) => p.x > -PIPE_WIDTH);
@@ -130,7 +152,7 @@ const FlappyGame = () => {
           });
         }
 
-        // Collision detection
+        // Collision detection (read-only)
         newPipes.forEach((pipe) => {
           if (birdX + BIRD_SIZE > pipe.x && birdX < pipe.x + PIPE_WIDTH) {
             // Check collision with top or bottom pipe
@@ -142,23 +164,6 @@ const FlappyGame = () => {
               setRunning(false);
             }
           }
-
-          // Score increment when passing pipe
-          if (pipe.x === birdX - PIPE_WIDTH / 2 && !pipe.scored) {
-            setScore((prev) => {
-              const newScore = prev + 1;
-              if (newScore > highScore) {
-                setHighScore(newScore);
-                try {
-                  localStorage.setItem("flappyHighScore", String(newScore));
-                } catch {
-                  // localStorage may be unavailable
-                }
-              }
-              return newScore;
-            });
-            pipe.scored = true;
-          }
         });
 
         return newPipes;
@@ -166,7 +171,7 @@ const FlappyGame = () => {
     }, 30);
 
     return () => clearInterval(intervalId);
-  }, [running, gameOver, birdVelocity, highScore]);
+  }, [running, gameOver, highScore]);
 
   return (
     <div

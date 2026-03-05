@@ -189,14 +189,10 @@ const Game2048 = () => {
   const [won, setWon] = useState(false);
   const [mergedIds, setMergedIds] = useState<number[]>([]);
   const gridRef = useRef(grid);
-  const scoreRef = useRef(score);
 
   useEffect(() => {
     gridRef.current = grid;
   }, [grid]);
-  useEffect(() => {
-    scoreRef.current = score;
-  }, [score]);
 
   useEffect(() => {
     if (mergedIds.length === 0) return;
@@ -233,7 +229,7 @@ const Game2048 = () => {
       const newGrid = result.grid;
       addNewTile(newGrid);
       setGrid(newGrid);
-      setScore(scoreRef.current + result.score);
+      setScore((prev) => prev + result.score);
       setMergedIds(result.mergedIds);
 
       if (hasWon(newGrid)) {
