@@ -165,6 +165,12 @@ const TetrisGame = () => {
   const gameOverRef = useRef(gameOver);
   const speedRef = useRef(800 - level * 50);
   const nextPieceRef = useRef(nextPiece);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  // Focus the game container when the component mounts
+  useEffect(() => {
+    rootRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     boardRef.current = board;
@@ -277,7 +283,7 @@ const TetrisGame = () => {
     }, speedRef.current);
 
     return () => clearInterval(id);
-  }, [running, moveDown, placeCurrent]);
+  }, [running, level, moveDown, placeCurrent]);
 
   const reset = () => {
     setBoard(createEmptyBoard());
@@ -307,9 +313,11 @@ const TetrisGame = () => {
 
   return (
     <div
+      ref={rootRef}
       className="flex flex-col items-center gap-6"
       role="application"
       aria-label="Tetris game"
+      tabIndex={0}
     >
       <div className="flex gap-8 flex-wrap justify-center">
         {/* Game Board */}
@@ -344,6 +352,7 @@ const TetrisGame = () => {
             <div
               className="mt-4 text-red-500 font-bold text-xl text-center"
               role="status"
+              aria-live="assertive"
             >
               GAME OVER
             </div>

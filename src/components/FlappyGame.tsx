@@ -31,16 +31,27 @@ const FlappyGame = () => {
     }
   });
 
-  const gameWidth = 400;
-  const gameHeight = 600;
-  const birdX = 50;
+  const GAME_WIDTH = 400;
+  const GAME_HEIGHT = 600;
+  const BIRD_X = 50;
 
   const rootRef = useRef<HTMLDivElement | null>(null);
   const birdYRef = useRef(birdY);
+  // Refs so the game-loop interval never needs to be recreated for these values
+  const velocityRef = useRef(birdVelocity);
+  const highScoreRef = useRef(highScore);
 
   useEffect(() => {
     birdYRef.current = birdY;
   }, [birdY]);
+
+  useEffect(() => {
+    velocityRef.current = birdVelocity;
+  }, [birdVelocity]);
+
+  useEffect(() => {
+    highScoreRef.current = highScore;
+  }, [highScore]);
 
   // Focus game on mount
   useEffect(() => {
@@ -50,11 +61,16 @@ const FlappyGame = () => {
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.key === " " || e.key === "Enter") && !running && gameOver) {
+      if (e.key !== " " && e.key !== "Enter") return;
+      e.preventDefault();
+
+      if (gameOver) {
         reset();
-        return;
-      }
-      if ((e.key === " " || e.key === "Enter") && running && !gameOver) {
+      } else if (!running) {
+        setRunning(true);
+      } else {
+        // Flap while playing
+        velocityRef.current = FLAP_STRENGTH;
         setBirdVelocity(FLAP_STRENGTH);
       }
     };
@@ -63,22 +79,28 @@ const FlappyGame = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [gameOver, running]);
 
-  // Mouse click to flap
+  // Click / tap to flap (also starts the game)
   const handleFlap = () => {
-    if (!gameOver) {
-      setBirdVelocity(FLAP_STRENGTH);
+    if (gameOver) return;
+    if (!running) {
+      setRunning(true);
+      return;
     }
+    velocityRef.current = FLAP_STRENGTH;
+    setBirdVelocity(FLAP_STRENGTH);
   };
 
-  // Start game
-  const startGame = () => {
-    if (!running && !gameOver) {
+  const handleStartOrRestart = () => {
+    if (gameOver) {
+      reset();
+    } else if (!running) {
       setRunning(true);
     }
   };
 
   // Reset game
   const reset = () => {
+    velocityRef.current = 0;
     setBirdY(200);
     setBirdVelocity(0);
     setPipes([
@@ -90,17 +112,20 @@ const FlappyGame = () => {
     setRunning(true);
   };
 
-  // Game loop
+  // Game loop — deps only on running/gameOver; velocity and highScore read via refs
   useEffect(() => {
     if (!running || gameOver) return;
 
     const intervalId = setInterval(() => {
       setBirdY((prevY) => {
-        const newY = prevY + birdVelocity;
-        setBirdVelocity((v) => v + GRAVITY);
+        const vel = velocityRef.current;
+        const newY = prevY + vel;
+        const newVel = vel + GRAVITY;
+        velocityRef.current = newVel;
+        setBirdVelocity(newVel);
 
         // Ceiling and floor collision
-        if (newY <= 0 || newY + BIRD_SIZE >= gameHeight) {
+        if (newY <= 0 || newY + BIRD_SIZE >= GAME_HEIGHT) {
           setGameOver(true);
           setRunning(false);
           return prevY;
@@ -110,30 +135,23 @@ const FlappyGame = () => {
       });
 
       setPipes((prevPipes) => {
-        let newPipes = prevPipes.map((p) => ({
-          ...p,
-          x: p.x - 6,
-        }));
+        let newPipes = prevPipes.map((p) => ({ ...p, x: p.x - 6 }));
 
         // Remove off-screen pipes and add new ones
         newPipes = newPipes.filter((p) => p.x > -PIPE_WIDTH);
 
         if (
           newPipes.length > 0 &&
-          newPipes[newPipes.length - 1].x < gameWidth - PIPE_SPACING
+          newPipes[newPipes.length - 1].x < GAME_WIDTH - PIPE_SPACING
         ) {
           const randomGapStart =
-            Math.random() * (gameHeight - PIPE_GAP - 60) + 30;
-          newPipes.push({
-            x: gameWidth,
-            topHeight: randomGapStart,
-          });
+            Math.random() * (GAME_HEIGHT - PIPE_GAP - 60) + 30;
+          newPipes.push({ x: GAME_WIDTH, topHeight: randomGapStart });
         }
 
-        // Collision detection
+        // Collision detection and scoring
         newPipes.forEach((pipe) => {
-          if (birdX + BIRD_SIZE > pipe.x && birdX < pipe.x + PIPE_WIDTH) {
-            // Check collision with top or bottom pipe
+          if (BIRD_X + BIRD_SIZE > pipe.x && BIRD_X < pipe.x + PIPE_WIDTH) {
             if (
               birdYRef.current < pipe.topHeight ||
               birdYRef.current + BIRD_SIZE > pipe.topHeight + PIPE_GAP
@@ -143,11 +161,11 @@ const FlappyGame = () => {
             }
           }
 
-          // Score increment when passing pipe
-          if (pipe.x === birdX - PIPE_WIDTH / 2 && !pipe.scored) {
+          if (pipe.x === BIRD_X - PIPE_WIDTH / 2 && !pipe.scored) {
             setScore((prev) => {
               const newScore = prev + 1;
-              if (newScore > highScore) {
+              if (newScore > highScoreRef.current) {
+                highScoreRef.current = newScore;
                 setHighScore(newScore);
                 try {
                   localStorage.setItem("flappyHighScore", String(newScore));
@@ -166,7 +184,7 @@ const FlappyGame = () => {
     }, 30);
 
     return () => clearInterval(intervalId);
-  }, [running, gameOver, birdVelocity, highScore]);
+  }, [running, gameOver]);
 
   return (
     <div
@@ -178,7 +196,7 @@ const FlappyGame = () => {
     >
       <div className="flex gap-4 mb-2">
         <button
-          onClick={startGame}
+          onClick={handleStartOrRestart}
           className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded font-bold"
         >
           {running ? "Playing..." : gameOver ? "Restart" : "Start"}
@@ -193,15 +211,15 @@ const FlappyGame = () => {
         aria-label="Game canvas"
         className="relative bg-gradient-to-b from-cyan-300 to-cyan-100 border-4 border-gray-800 cursor-pointer overflow-hidden"
         style={{
-          width: `${gameWidth}px`,
-          height: `${gameHeight}px`,
+          width: `${GAME_WIDTH}px`,
+          height: `${GAME_HEIGHT}px`,
         }}
       >
         {/* Bird */}
         <div
           className="absolute"
           style={{
-            left: `${birdX}px`,
+            left: `${BIRD_X}px`,
             top: `${birdY}px`,
             transform: `rotate(${Math.min(birdVelocity * 2, 90)}deg)`,
             transition: "none",
@@ -216,7 +234,6 @@ const FlappyGame = () => {
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
           >
-            {/* Bird body */}
             <ellipse
               cx="15"
               cy="12"
@@ -226,8 +243,6 @@ const FlappyGame = () => {
               stroke="#FFA500"
               strokeWidth="1.5"
             />
-
-            {/* Bird head */}
             <circle
               cx="22"
               cy="10"
@@ -236,19 +251,13 @@ const FlappyGame = () => {
               stroke="#FFA500"
               strokeWidth="1.5"
             />
-
-            {/* Eye */}
             <circle cx="24" cy="9" r="2" fill="#000000" />
-
-            {/* Beak */}
             <polygon
               points="28,9 30,8.5 28,11"
               fill="#FF6B00"
               stroke="#FF6B00"
               strokeWidth="1"
             />
-
-            {/* Wing top */}
             <path
               d="M 12 8 Q 8 4 6 8"
               stroke="#FF8C00"
@@ -256,8 +265,6 @@ const FlappyGame = () => {
               fill="none"
               strokeLinecap="round"
             />
-
-            {/* Wing bottom */}
             <path
               d="M 12 16 Q 8 20 6 16"
               stroke="#FF8C00"
@@ -265,8 +272,6 @@ const FlappyGame = () => {
               fill="none"
               strokeLinecap="round"
             />
-
-            {/* Tail feathers */}
             <path
               d="M 5 10 L 2 8"
               stroke="#FF8C00"
@@ -291,7 +296,6 @@ const FlappyGame = () => {
         {/* Pipes */}
         {pipes.map((pipe, idx) => (
           <div key={idx}>
-            {/* Top pipe */}
             <div
               className="absolute bg-green-600 border-2 border-green-800"
               style={{
@@ -301,20 +305,19 @@ const FlappyGame = () => {
                 height: `${pipe.topHeight}px`,
               }}
             />
-            {/* Bottom pipe */}
             <div
               className="absolute bg-green-600 border-2 border-green-800"
               style={{
                 left: `${pipe.x}px`,
                 top: `${pipe.topHeight + PIPE_GAP}px`,
                 width: `${PIPE_WIDTH}px`,
-                height: `${gameHeight - pipe.topHeight - PIPE_GAP}px`,
+                height: `${GAME_HEIGHT - pipe.topHeight - PIPE_GAP}px`,
               }}
             />
           </div>
         ))}
 
-        {/* Game Over message */}
+        {/* Game Over overlay */}
         {gameOver && (
           <div
             className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50"
@@ -333,7 +336,7 @@ const FlappyGame = () => {
           </div>
         )}
 
-        {/* Start instructions */}
+        {/* Start instructions overlay */}
         {!running && !gameOver && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40">
             <div className="text-center">
@@ -342,7 +345,7 @@ const FlappyGame = () => {
                 Click or press SPACE to flap
               </p>
               <button
-                onClick={startGame}
+                onClick={handleStartOrRestart}
                 className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-bold text-lg"
               >
                 Start Game

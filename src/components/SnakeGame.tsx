@@ -70,24 +70,28 @@ const SnakeGame = () => {
         if (now - lastInputAt.current < 80) return;
         lastInputAt.current = now;
         if (dr === 1) return;
+        e.preventDefault();
         setDirection([-1, 0]);
       } else if (key === "ArrowDown" || key === "s") {
         const now = Date.now();
         if (now - lastInputAt.current < 80) return;
         lastInputAt.current = now;
         if (dr === -1) return;
+        e.preventDefault();
         setDirection([1, 0]);
       } else if (key === "ArrowLeft" || key === "a") {
         const now = Date.now();
         if (now - lastInputAt.current < 80) return;
         lastInputAt.current = now;
         if (dc === 1) return;
+        e.preventDefault();
         setDirection([0, -1]);
       } else if (key === "ArrowRight" || key === "d") {
         const now = Date.now();
         if (now - lastInputAt.current < 80) return;
         lastInputAt.current = now;
         if (dc === -1) return;
+        e.preventDefault();
         setDirection([0, 1]);
       } else if (key === "Escape") {
         setRunning(false);

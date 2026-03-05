@@ -199,13 +199,13 @@ function Home({ onPlaySnake, onPlay2048, onPlayTetris, onPlayFlappy }: HomeProps
       </div>
 
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
         @keyframes rainbow {
           0% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
           100% { background-position: 0% 50%; }
         }
-
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
         .arcade-title {
           font-family: 'Orbitron', monospace;

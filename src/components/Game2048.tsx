@@ -190,6 +190,11 @@ const Game2048 = () => {
   const [mergedIds, setMergedIds] = useState<number[]>([]);
   const gridRef = useRef(grid);
   const scoreRef = useRef(score);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    rootRef.current?.focus();
+  }, []);
 
   useEffect(() => {
     gridRef.current = grid;
@@ -261,9 +266,11 @@ const Game2048 = () => {
 
   return (
     <div
+      ref={rootRef}
       className="flex flex-col items-center"
       role="application"
       aria-label="2048 game"
+      tabIndex={0}
     >
       <div className="mb-6 flex flex-col items-center gap-4">
         <div className="text-4xl font-bold text-gray-900">Score: {score}</div>
