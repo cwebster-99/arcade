@@ -1,6 +1,6 @@
 # Arcade
 
-A collection of classic arcade games built with React and TypeScript. Play Snake, 2048, Tetris, and Flappy Bird right in your browser!
+A collection of classic arcade games built with React and TypeScript. Play Snake, 2048, Tetris, Flappy Bird, Minesweeper, and Brick Breaker right in your browser!
 
 ## Games
 
@@ -11,6 +11,10 @@ A collection of classic arcade games built with React and TypeScript. Play Snake
 🧱 **Tetris** - Stack falling blocks to clear lines and score points
 
 🐦 **Flappy Bird** - Tap to fly through gaps in the pipes
+
+💣 **Minesweeper** - Uncover tiles without triggering hidden mines
+
+🧱 **Brick Breaker** - Bounce the ball off your paddle to smash all the bricks, earn points, and clear every row before you run out of lives
 
 ## Features
 
@@ -49,11 +53,13 @@ A collection of classic arcade games built with React and TypeScript. Play Snake
 ```
 src/
 ├── components/
-│   ├── Home.tsx         # Home page with game selection
-│   ├── SnakeGame.tsx    # Snake game component
-│   ├── Game2048.tsx     # 2048 game component
-│   ├── TetrisGame.tsx   # Tetris game component
-│   └── FlappyGame.tsx   # Flappy Bird game component
+│   ├── Home.tsx              # Home page with game selection
+│   ├── SnakeGame.tsx         # Snake game component
+│   ├── Game2048.tsx          # 2048 game component
+│   ├── TetrisGame.tsx        # Tetris game component
+│   ├── FlappyGame.tsx        # Flappy Bird game component
+│   ├── MinesweeperGame.tsx   # Minesweeper game component
+│   └── BrickBreakerGame.tsx  # Brick Breaker game component
 ├── App.tsx              # Main app with routing
 ├── main.tsx             # Entry point
 └── index.css            # Global styles
@@ -81,3 +87,15 @@ src/
 - **Space** or **Click** to flap
 - Navigate through the pipes
 - Don't hit the ground or pipes!
+
+### Minesweeper
+- **Left click** to reveal a tile
+- **Right click** to place or remove a flag
+- Use the numbers to deduce where the mines are hiding
+
+### Brick Breaker
+- **Left/Right arrows** or **mouse movement** to move the paddle
+- **Space** or **Click** to launch the ball
+- Break all the bricks to win — each brick is worth 10 points
+- You have 3 lives; losing the ball costs one life
+- The ball speeds up as you clear bricks, and your high score is saved locally
