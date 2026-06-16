@@ -5,6 +5,7 @@ import Game2048 from "./components/Game2048";
 import TetrisGame from "./components/TetrisGame";
 import FlappyGame from "./components/FlappyGame";
 import MinesweeperGame from "./components/MinesweeperGame";
+import BrickBreakerGame from "./components/BrickBreakerGame";
 
 interface GameLayoutProps {
   title: string;
@@ -72,7 +73,13 @@ function App() {
   });
 
   const [view, setView] = useState<
-    "home" | "snake" | "2048" | "tetris" | "flappy" | "minesweeper"
+    | "home"
+    | "snake"
+    | "2048"
+    | "tetris"
+    | "flappy"
+    | "minesweeper"
+    | "brickbreaker"
   >("home");
 
   useEffect(() => {
@@ -109,6 +116,7 @@ function App() {
           onPlayTetris={() => setView("tetris")}
           onPlayFlappy={() => setView("flappy")}
           onPlayMinesweeper={() => setView("minesweeper")}
+          onPlayBrickBreaker={() => setView("brickbreaker")}
         />
       )}
 
@@ -166,6 +174,18 @@ function App() {
           bgColor="bg-gray-900"
         >
           <MinesweeperGame />
+        </GameLayout>
+      )}
+
+      {view === "brickbreaker" && (
+        <GameLayout
+          title="BRICK BREAKER"
+          onBack={() => setView("home")}
+          onThemeChange={handleThemeChange}
+          theme={theme}
+          bgColor="bg-black"
+        >
+          <BrickBreakerGame />
         </GameLayout>
       )}
     </div>
