@@ -1,4 +1,4 @@
-// Tiny query language for the Arcade Telemetry dashboard.
+// Tiny query language for the Copilot App Telemetry dashboard.
 //
 //   metric=<name> [| where <field> (=|!=) <value|$var|"quoted"> [and ...]] [| <agg>[(field)] [by <field>]]
 //

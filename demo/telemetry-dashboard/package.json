@@ -1,8 +1,8 @@
 {
-  "name": "arcade-telemetry-dashboard",
+  "name": "copilot-app-telemetry-dashboard",
   "version": "1.0.0",
   "private": true,
-  "description": "Local 'Arcade Telemetry' observability dashboard + MCP connector used for the GitHub Copilot App Universe demo",
+  "description": "Local 'Copilot App Telemetry' observability dashboard + MCP connector used for the GitHub Copilot App Universe demo",
   "type": "module",
   "scripts": {
     "start": "node server.js",

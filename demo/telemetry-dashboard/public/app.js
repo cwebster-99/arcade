@@ -196,7 +196,7 @@ function renderPanels(data) {
 
 function render(data) {
   lastData = data;
-  document.title = `${data.title} · Arcade Telemetry`;
+  document.title = `${data.title} · Copilot App Telemetry`;
   document.getElementById("dashboard-title").textContent = data.title;
   document.getElementById("time-range-label").textContent = data.timeRange || "Last 14 days";
   renderVariables(data);

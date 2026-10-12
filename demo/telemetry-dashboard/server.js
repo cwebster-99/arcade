@@ -214,7 +214,7 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`Arcade Telemetry dashboard running at http://localhost:${PORT}/`);
+  console.log(`Copilot App Telemetry dashboard running at http://localhost:${PORT}/`);
   console.log(`  dashboard definition: ${DASHBOARD_PATH}`);
   console.log(`  ingest endpoint:      POST http://localhost:${PORT}/ingest`);
 });

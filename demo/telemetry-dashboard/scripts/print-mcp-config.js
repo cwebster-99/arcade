@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const serverPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "mcp-server", "server.js");
 const config = {
   mcpServers: {
-    "arcade-telemetry": {
+    "copilot-app-telemetry": {
       type: "local",
       command: "node",
       args: [serverPath],

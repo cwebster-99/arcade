@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Arcade Telemetry MCP connector (stdio).
+// Copilot App Telemetry MCP connector (stdio).
 // Lets an agent read and edit the local dashboard definition (dashboard.json).
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -14,9 +14,9 @@ import {
 } from "../lib/store.js";
 
 const METRIC_DESCRIPTIONS = {
-  session_start: "A player started a game session.",
-  error: "An uncaught client-side error was reported.",
-  ttff_ms: "Time-to-first-frame in milliseconds, measured from game mount to the first rendered frame.",
+  session_start: "A Copilot App session was created or resumed.",
+  startup_error: "A session failed to start (create or resume).",
+  session_ready_ms: "Time in milliseconds from session open/resume until the session is ready for input.",
 };
 
 const QUERY_HELP =
@@ -29,14 +29,14 @@ const json = (value) => ({ content: [{ type: "text", text: JSON.stringify(value,
 const text = (value) => ({ content: [{ type: "text", text: value }] });
 const fail = (message) => ({ content: [{ type: "text", text: message }], isError: true });
 
-const server = new McpServer({ name: "arcade-telemetry", version: "1.0.0" });
+const server = new McpServer({ name: "copilot-app-telemetry", version: "1.0.0" });
 
 server.registerTool(
   "get_dashboard",
   {
     title: "Get dashboard",
     description:
-      "Return the Arcade Telemetry 'Game Health' dashboard definition: title, dashboard variables, and every panel (id, title, viz, width, query). " +
+      "Return the Copilot App 'Session Startup Health' dashboard definition: title, dashboard variables, and every panel (id, title, viz, width, query). " +
       `The live dashboard is served at ${DASHBOARD_URL}.`,
     inputSchema: {},
   },
@@ -47,7 +47,7 @@ server.registerTool(
   "list_metrics",
   {
     title: "List metrics",
-    description: "List the metric names that can be queried on the Arcade Telemetry dashboard.",
+    description: "List the metric names that can be queried on the Copilot App Telemetry dashboard.",
     inputSchema: {},
   },
   async () => {
@@ -60,10 +60,10 @@ server.registerTool(
   "add_panel",
   {
     title: "Add panel",
-    description: `Add a new panel to the Arcade Telemetry dashboard. ${QUERY_HELP}`,
+    description: `Add a new panel to the Copilot App Telemetry dashboard. ${QUERY_HELP}`,
     inputSchema: {
       title: z.string().min(1).describe("Panel title"),
-      query: z.string().min(1).describe("Panel query, e.g. metric=session_start | where version = $app_version | count by game"),
+      query: z.string().min(1).describe("Panel query, e.g. metric=session_start | where version = $app_version | count by operation"),
       viz: z.enum(VIZ_TYPES).describe("Visualization type"),
       width: z.number().int().min(2).max(12).optional().describe("Grid width in columns out of 12 (default 6, stats default 3)"),
       unit: z.string().optional().describe("Optional display unit, e.g. ms"),
@@ -83,7 +83,7 @@ server.registerTool(
   "update_panel",
   {
     title: "Update panel",
-    description: `Update an existing panel on the Arcade Telemetry dashboard by id. Only provided fields change. ${QUERY_HELP}`,
+    description: `Update an existing panel on the Copilot App Telemetry dashboard by id. Only provided fields change. ${QUERY_HELP}`,
     inputSchema: {
       id: z.string().min(1).describe("Panel id (from get_dashboard)"),
       title: z.string().min(1).optional(),
@@ -107,7 +107,7 @@ server.registerTool(
   "remove_panel",
   {
     title: "Remove panel",
-    description: "Remove a panel from the Arcade Telemetry dashboard by id.",
+    description: "Remove a panel from the Copilot App Telemetry dashboard by id.",
     inputSchema: { id: z.string().min(1).describe("Panel id (from get_dashboard)") },
   },
   async ({ id }) => {

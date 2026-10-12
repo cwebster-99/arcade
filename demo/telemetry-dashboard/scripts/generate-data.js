@@ -1,11 +1,11 @@
-// Regenerates data/events.json with deterministic synthetic telemetry.
+// Regenerates data/events.json with deterministic, fully synthetic Copilot App startup telemetry.
 // Three event tables share one file:
-//   session_start, error  -> legacy pipeline, version stored in `version`
-//   ttff_ms               -> new pipeline (shipped in 1.4.0 instrumentation), version stored in `app_version`
+//   session_start, startup_error -> legacy pipeline, version stored in `version`
+//   session_ready_ms             -> new pipeline, version stored in `app_version`
 import fs from "node:fs";
 import { EVENTS_PATH } from "../lib/store.js";
 
-let seed = 1337;
+let seed = 4242;
 function rand() {
   seed = (seed * 1664525 + 1013904223) % 4294967296;
   return seed / 4294967296;
@@ -15,74 +15,71 @@ function gauss() {
 }
 const pick = (arr) => arr[Math.floor(rand() * arr.length)];
 
-const GAMES = ["snake", "2048", "tetris", "flappy", "minesweeper"];
-const GAME_WEIGHTS = { snake: 0.3, "2048": 0.2, tetris: 0.22, flappy: 0.18, minesweeper: 0.1 };
-const BASE_TTFF = { snake: 170, "2048": 140, tetris: 230, flappy: 290, minesweeper: 190 };
 const DAYS = 14;
 const END = Date.parse("2026-01-14T00:00:00.000Z");
-
-function versionForDay(day) {
-  // Staged rollout: 1.2.0 -> 1.3.0 -> 1.4.0, with overlap while clients update.
-  const r = rand();
-  if (day < 4) return r < 0.85 ? "1.2.0" : "1.3.0";
-  if (day < 9) return day < 6 && r < 0.25 ? "1.2.0" : "1.3.0";
-  if (day < 11) return r < 0.55 ? "1.4.0" : "1.3.0";
-  return r < 0.9 ? "1.4.0" : "1.3.0";
-}
-
-function pickGame() {
-  let r = rand();
-  for (const g of GAMES) {
-    r -= GAME_WEIGHTS[g];
-    if (r <= 0) return g;
-  }
-  return GAMES[0];
-}
-
-const ERROR_TYPES = {
-  snake: ["TypeError", "RangeError"],
-  "2048": ["TypeError"],
-  tetris: ["TypeError", "InvalidStateError"],
-  flappy: ["TypeError", "SecurityError"],
-  minesweeper: ["RangeError"],
+const TIMEOUT_MS = 30000;
+// Median time-to-ready (ms) per operation and OS on a healthy build.
+const BASE_READY = {
+  create: { windows: 2400, macos: 1900 },
+  resume: { windows: 1300, macos: 1050 },
 };
 
-function ttffValue(game, version, platform) {
-  let v = BASE_TTFF[game];
-  if (platform === "mobile") v *= 1.7;
-  if (version === "1.2.0") v *= 1.08;
-  if (version === "1.4.0") v *= platform === "mobile" ? 3.4 : 1.06;
-  return Math.max(40, Math.round(v * (1 + 0.18 * gauss())));
+function versionForDay(day) {
+  // Staged rollout: 1.1.26 -> 1.1.27 -> 1.1.28, with overlap while clients auto-update.
+  const r = rand();
+  if (day < 4) return r < 0.85 ? "1.1.26" : "1.1.27";
+  if (day < 9) return day < 6 && r < 0.25 ? "1.1.26" : "1.1.27";
+  if (day < 11) return r < 0.55 ? "1.1.28" : "1.1.27";
+  return r < 0.9 ? "1.1.28" : "1.1.27";
 }
+
+function timeoutRate(version, operation, os) {
+  if (version === "1.1.28" && operation === "resume" && os === "windows") return 0.14;
+  if (operation === "create") return 0.008;
+  return 0.004;
+}
+
+function readyValue(version, operation, os) {
+  let v = BASE_READY[operation][os];
+  if (version === "1.1.26") v *= 1.05;
+  if (version === "1.1.28" && operation === "resume" && os === "windows") v *= 2.9;
+  // Log-normal-ish spread gives a realistic long tail for p95.
+  return Math.min(TIMEOUT_MS - 500, Math.max(250, Math.round(v * Math.exp(0.35 * gauss()))));
+}
+
+const OTHER_REASONS = ["runtime_rpc", "auth", "spawn_failed"];
 
 const events = [];
 for (let day = 0; day < DAYS; day++) {
   const dayStart = END - (DAYS - 1 - day) * 86400000;
-  const sessions = 55 + Math.round(rand() * 30) + day * 2;
+  const sessions = 110 + Math.round(rand() * 40) + day * 3;
   for (let i = 0; i < sessions; i++) {
     const ts = new Date(dayStart + Math.floor(rand() * 86400000)).toISOString();
-    const game = pickGame();
     const version = versionForDay(day);
-    const platform = rand() < 0.42 ? "mobile" : "desktop";
-    const browser = platform === "mobile" ? pick(["mobile_safari", "chrome_android"]) : pick(["chrome", "edge", "firefox", "safari"]);
+    const operation = rand() < 0.55 ? "resume" : "create";
+    const os = rand() < 0.62 ? "windows" : "macos";
+    const base = { ts, operation, os_platform: os, session_type: "local" };
 
-    events.push({ metric: "session_start", ts, game, version, platform, browser });
+    events.push({ metric: "session_start", ...base, version });
 
-    // ttff instrumentation was back-filled for older clients via the new pipeline
-    events.push({ metric: "ttff_ms", ts, game, app_version: version, platform, value: ttffValue(game, version, platform) });
-
-    let errorRate = 0.025;
-    if (version === "1.4.0" && game === "snake" && platform === "mobile") errorRate = 0.65;
-    if (rand() < errorRate) {
-      events.push({
-        metric: "error",
-        ts,
-        game,
-        version,
-        platform,
-        error_type: version === "1.4.0" && game === "snake" && platform === "mobile" ? "TypeError" : pick(ERROR_TYPES[game]),
-      });
+    if (rand() < timeoutRate(version, operation, os)) {
+      events.push({ metric: "session_ready_ms", ...base, app_version: version, outcome: "timeout", value: TIMEOUT_MS });
+      events.push({ metric: "startup_error", ...base, version, reason: "timeout" });
+      continue;
     }
+
+    if (rand() < (operation === "create" ? 0.012 : 0.005)) {
+      events.push({ metric: "startup_error", ...base, version, reason: pick(OTHER_REASONS) });
+      continue;
+    }
+
+    events.push({
+      metric: "session_ready_ms",
+      ...base,
+      app_version: version,
+      outcome: "ready",
+      value: readyValue(version, operation, os),
+    });
   }
 }
 

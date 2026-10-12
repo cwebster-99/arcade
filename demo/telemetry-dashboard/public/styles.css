@@ -102,8 +102,10 @@ svg {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
   color: var(--muted);
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .breadcrumbs h1 {
@@ -112,6 +114,8 @@ svg {
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sep {
@@ -441,5 +445,9 @@ table.data td.num {
 @media (max-width: 760px) {
   .panel {
     grid-column: span 12 !important;
+  }
+  .breadcrumbs .crumb,
+  .breadcrumbs .sep {
+    display: none;
   }
 }

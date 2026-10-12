@@ -48,7 +48,7 @@ A collection of classic arcade games built with React and TypeScript. Play Snake
 
 Copy `.env.example` to `.env` to enable Sentry error reporting (`VITE_SENTRY_DSN`) and
 time-to-first-frame telemetry (`VITE_TELEMETRY_URL`). With no `.env`, both are disabled.
-See [`demo/README.md`](demo/README.md) for the local Arcade Telemetry dashboard and MCP connector.
+See [`demo/README.md`](demo/README.md) for the Universe demo runbook (local telemetry dashboard + MCP connector).
 
 ## Project Structure
 

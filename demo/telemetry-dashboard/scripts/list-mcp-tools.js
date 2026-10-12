@@ -5,7 +5,7 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
 const serverPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "mcp-server", "server.js");
-const client = new Client({ name: "arcade-telemetry-smoke-test", version: "1.0.0" });
+const client = new Client({ name: "copilot-app-telemetry-smoke-test", version: "1.0.0" });
 await client.connect(new StdioClientTransport({ command: process.execPath, args: [serverPath] }));
 
 const { tools } = await client.listTools();
