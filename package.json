@@ -2,7 +2,7 @@
   "name": "arcade-games",
   "description": "A collection of classic arcade games built with React, TypeScript, and Tailwind CSS",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,9 +11,11 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "seed:sentry": "node --env-file-if-exists=.env scripts/seed-sentry-crash.mjs"
   },
   "dependencies": {
+    "@sentry/react": "^8.55.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -5,8 +5,10 @@ import Game2048 from "./components/Game2048";
 import TetrisGame from "./components/TetrisGame";
 import FlappyGame from "./components/FlappyGame";
 import MinesweeperGame from "./components/MinesweeperGame";
+import { useTimeToFirstFrame } from "./utils/telemetry";
 
 interface GameLayoutProps {
+  gameId: string;
   title: string;
   children: ReactNode;
   onBack: () => void;
@@ -16,6 +18,7 @@ interface GameLayoutProps {
 }
 
 function GameLayout({
+  gameId,
   title,
   children,
   onBack,
@@ -23,6 +26,8 @@ function GameLayout({
   theme,
   bgColor = "bg-white",
 }: GameLayoutProps) {
+  useTimeToFirstFrame(gameId);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 transition-colors">
       <div className="container mx-auto px-4">
@@ -114,6 +119,7 @@ function App() {
 
       {view === "snake" && (
         <GameLayout
+          gameId="snake"
           title="Snake"
           onBack={() => setView("home")}
           onThemeChange={handleThemeChange}
@@ -125,6 +131,7 @@ function App() {
 
       {view === "2048" && (
         <GameLayout
+          gameId="2048"
           title="2048"
           onBack={() => setView("home")}
           onThemeChange={handleThemeChange}
@@ -136,6 +143,7 @@ function App() {
 
       {view === "tetris" && (
         <GameLayout
+          gameId="tetris"
           title="TETRIS"
           onBack={() => setView("home")}
           onThemeChange={handleThemeChange}
@@ -148,6 +156,7 @@ function App() {
 
       {view === "flappy" && (
         <GameLayout
+          gameId="flappy"
           title="FLAPPY BIRD"
           onBack={() => setView("home")}
           onThemeChange={handleThemeChange}
@@ -159,6 +168,7 @@ function App() {
 
       {view === "minesweeper" && (
         <GameLayout
+          gameId="minesweeper"
           title="MINESWEEPER"
           onBack={() => setView("home")}
           onThemeChange={handleThemeChange}

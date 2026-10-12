@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 
 const DEFAULT_SIZE = 20;
 const DEFAULT_SPEED = 120; // ms per move
+const SWIPE_THRESHOLD = 24; // px
 
 type Cell = [number, number];
 
@@ -40,6 +41,7 @@ const SnakeGame = () => {
   const snakeRef = useRef(snake);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const lastInputAt = useRef(0);
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
 
   // Focus the game container when the component mounts
   useEffect(() => {
@@ -145,6 +147,37 @@ const SnakeGame = () => {
     return () => clearInterval(id);
   }, [running, speed, food, size]);
 
+  // Touch (swipe) controls
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    const touch = event.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY };
+  };
+
+  const handleTouchEnd = (event: TouchEvent<HTMLDivElement>) => {
+    const start = touchStartRef.current;
+    if (!start) return;
+    touchStartRef.current = null;
+
+    const touch = event.touches[0];
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+
+    if (!running) {
+      setRunning(true);
+      setGameOver(false);
+    }
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_THRESHOLD) return;
+
+    const [dr, dc] = dirRef.current;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      if (dx > 0 && dc !== -1) setDirection([0, 1]);
+      else if (dx < 0 && dc !== 1) setDirection([0, -1]);
+    } else {
+      if (dy > 0 && dr !== -1) setDirection([1, 0]);
+      else if (dy < 0 && dr !== 1) setDirection([-1, 0]);
+    }
+  };
+
   const reset = (newSize = size, newSpeed = DEFAULT_SPEED) => {
     const c = Math.floor(newSize / 2);
     const init: Cell[] = [
@@ -238,6 +271,8 @@ const SnakeGame = () => {
         aria-rowcount={size}
         aria-colcount={size}
         aria-label="Snake board"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         <div
           style={{
@@ -287,7 +322,8 @@ const SnakeGame = () => {
       )}
 
       <div className="mt-3 text-xs text-gray-500">
-        Use arrow keys or WASD to move. Press Space/Enter to start.
+        Use arrow keys or WASD to move (or swipe on touch screens). Press
+        Space/Enter to start.
       </div>
     </div>
   );

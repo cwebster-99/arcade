@@ -25,7 +25,7 @@ src/
 │   ├── TetrisGame.tsx   # Piece-based game (setInterval loop)
 │   └── FlappyGame.tsx   # Physics-based game (requestAnimationFrame loop)
 ├── services/            # Empty — reserved for future backend integration
-└── utils/               # Empty — reserved for shared helpers
+└── utils/               # sentry.ts (opt-in Sentry init) + telemetry.ts (TTFF metric)
 ```
 
 - **Routing**: `App.tsx` uses a `view` state string to render the active page. No React Router.

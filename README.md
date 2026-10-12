@@ -44,6 +44,12 @@ A collection of classic arcade games built with React and TypeScript. Play Snake
    npm run build
    ```
 
+### Observability (optional)
+
+Copy `.env.example` to `.env` to enable Sentry error reporting (`VITE_SENTRY_DSN`) and
+time-to-first-frame telemetry (`VITE_TELEMETRY_URL`). With no `.env`, both are disabled.
+See [`demo/README.md`](demo/README.md) for the Universe demo offline-fallback runbook.
+
 ## Project Structure
 
 ```
@@ -62,7 +68,7 @@ src/
 ## How to Play
 
 ### Snake
-- Use **Arrow keys** to change direction
+- Use **Arrow keys** (or swipe on touch screens) to change direction
 - Eat the food to grow longer
 - Avoid hitting the walls or yourself
 
