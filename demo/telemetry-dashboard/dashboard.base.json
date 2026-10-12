@@ -1,0 +1,51 @@
+{
+  "uid": "arcade-game-health",
+  "title": "Arcade — Game Health",
+  "description": "Engagement and reliability for the Daily Mini Games arcade.",
+  "timeRange": "Last 14 days",
+  "variables": [
+    {
+      "name": "app_version",
+      "label": "App version",
+      "options": ["All", "1.2.0", "1.3.0", "1.4.0"],
+      "default": "1.4.0"
+    }
+  ],
+  "panels": [
+    {
+      "id": "sessions",
+      "title": "Sessions",
+      "viz": "stat",
+      "width": 3,
+      "query": "metric=session_start | where version = $app_version | count"
+    },
+    {
+      "id": "errors",
+      "title": "Errors",
+      "viz": "stat",
+      "width": 3,
+      "query": "metric=error | where version = $app_version | count"
+    },
+    {
+      "id": "sessions-over-time",
+      "title": "Sessions over time",
+      "viz": "line",
+      "width": 6,
+      "query": "metric=session_start | where version = $app_version | count by day"
+    },
+    {
+      "id": "sessions-by-game",
+      "title": "Sessions by game",
+      "viz": "bar",
+      "width": 6,
+      "query": "metric=session_start | where version = $app_version | count by game"
+    },
+    {
+      "id": "errors-by-game",
+      "title": "Errors by game",
+      "viz": "bar",
+      "width": 6,
+      "query": "metric=error | where version = $app_version | count by game"
+    }
+  ]
+}

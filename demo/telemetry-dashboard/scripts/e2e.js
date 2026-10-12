@@ -1,0 +1,57 @@
+// End-to-end dry run of the demo flow (requires `npm start` running).
+// 1. Adds a TTFF panel via MCP using the legacy `version` field -> panel renders an error.
+// 2. Fixes the query to `app_version` -> panel renders data.
+// 3. POSTs an /ingest event, then resets the dashboard.
+import assert from "node:assert/strict";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { DASHBOARD_URL, resetDashboard } from "../lib/store.js";
+
+const serverPath = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "mcp-server", "server.js");
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const render = async () => (await fetch(`${DASHBOARD_URL}api/render?var-app_version=1.4.0`)).json();
+
+const client = new Client({ name: "arcade-telemetry-e2e", version: "1.0.0" });
+await client.connect(new StdioClientTransport({ command: process.execPath, args: [serverPath] }));
+
+try {
+  const added = await client.callTool({
+    name: "add_panel",
+    arguments: {
+      title: "TTFF by game",
+      viz: "bar",
+      query: "metric=ttff_ms | where version = $app_version | avg by game",
+    },
+  });
+  assert.ok(!added.isError, "add_panel must not reject the legacy field");
+  console.log("add_panel  →", added.content[0].text);
+  await sleep(500);
+
+  let panel = (await render()).panels.find((p) => p.id === "ttff-by-game");
+  assert.equal(panel.error, "No data — unknown field 'version' for metric ttff_ms (did you mean app_version?)");
+  console.log("render     →", panel.error);
+
+  await client.callTool({
+    name: "update_panel",
+    arguments: { id: "ttff-by-game", query: "metric=ttff_ms | where app_version = $app_version | avg by game" },
+  });
+  await sleep(500);
+  panel = (await render()).panels.find((p) => p.id === "ttff-by-game");
+  assert.ok(!panel.error && panel.result.rows.length === 5);
+  console.log("render     →", panel.result.rows.map((r) => `${r.key}=${Math.round(r.value)}ms`).join(", "));
+
+  const ingest = await fetch(`${DASHBOARD_URL}ingest`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ metric: "ttff_ms", game: "snake", value: 321, app_version: "1.4.0", platform: "desktop" }),
+  });
+  assert.equal(ingest.status, 202);
+  console.log("ingest     →", ingest.status, await ingest.json());
+  console.log("\n✅ Demo flow verified.");
+} finally {
+  await client.close();
+  resetDashboard();
+  console.log("Dashboard reset to pre-demo state.");
+}
