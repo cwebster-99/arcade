@@ -82,13 +82,13 @@ describe("telemetry", () => {
   });
 
   it("posts the event to the telemetry endpoint", () => {
-    configureTelemetry({ endpoint: "http://localhost:4319/ingest" });
+    configureTelemetry({ endpoint: "https://telemetry.example.test/ingest" });
     const event = recordTtff("tetris", 10, 260);
 
     expect(event?.value).toBe(250);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
-    expect(url).toBe("http://localhost:4319/ingest");
+    expect(url).toBe("https://telemetry.example.test/ingest");
     expect(init.method).toBe("POST");
     expect(JSON.parse(init.body as string)).toMatchObject({
       metric: "ttff_ms",
@@ -112,7 +112,7 @@ describe("telemetry", () => {
   });
 
   it("useTimeToFirstFrame records once on the next frame", async () => {
-    configureTelemetry({ endpoint: "http://localhost:4319/ingest" });
+    configureTelemetry({ endpoint: "https://telemetry.example.test/ingest" });
     let frameCb: FrameRequestCallback | undefined;
     vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
       frameCb = cb;
